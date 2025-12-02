@@ -1,0 +1,11 @@
+version: "3.8"
+
+services:
+  xhs_pic_download:
+    image: nfew/xhs_pic_download:latest
+    container_name: xhs_pic_download
+    ports:
+      - "7776:7776"
+    environment:
+      - TZ=Asia/Shanghai
+    restart: always
