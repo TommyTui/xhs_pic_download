@@ -1,3 +1,4 @@
+const authMiddleware = require('./auth');
 const doGetUrl = require("./main");
 
 var express = require("express");
@@ -6,14 +7,12 @@ var app = express();
 
 app.use(bodyParser.json());
 
-app.all("/getXhsPicUrl", async function (req, res) {
+app.all("/getXhsPicUrl", authMiddleware, async function (req, res) {
   res.set("Content-Type", "application/json");
   const shareText = req.query.shareText || req.body.shareText;
   const xhsCookie = req.body.xhsCookie;
   if (!shareText) {
-    res.send(JSON.stringify({
-      error: "缺少shareText参数",
-    }));
+    res.status(400).json({ error: "Missing required parameter: shareText" });
     return;
   }
   try {
@@ -24,12 +23,14 @@ app.all("/getXhsPicUrl", async function (req, res) {
       },
       null
     );
-    res.send(JSON.stringify(result));
+    res.json(result);
   } catch (e) {
-    res.send(JSON.stringify({
-      error: e.message,
-    }));
+    res.status(500).json({ error: e.message });
   }
 });
 
-app.listen(7776);
+const PORT = 7776;
+app.listen(PORT, () => {
+    console.log(`Server started on port: ${PORT}`);
+    console.log(`Authentication: ${process.env.API_TOKEN ? 'On' : 'Off, Need to set API_TOKEN'}`);
+});

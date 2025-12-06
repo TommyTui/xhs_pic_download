@@ -91,54 +91,48 @@ async function getPicUrl(fullUrl, xhsCookie) {
   const responseData = response.data
   const resultObj = await findDom(responseData)
 
-  let picIdArray = []
   let note = null
   let imageList = []
+  let picUrlArray = []
   try {
     note = resultObj.note.noteDetailMap[resultObj.note.firstNoteId].note
+
+    const videoUrl = getVidUrl(note)
+    if (videoUrl) {
+      return [videoUrl]
+    }
+
     imageList = note?.imageList || []
     const regex = /https?:\/\/sns-webpic-qc\.xhscdn\.com\/\d+\/[0-9a-z]+\/(\S+)!/;
     imageList.forEach((item) => {
       const tempUrl = item.infoList[0].url
       let match = tempUrl.match(regex)
       if (match && match[1]) {
-        picIdArray.push(match[1])
+        picUrlArray.push(`https://ci.xiaohongshu.com/${match[1]}?imageView2/2/w/0/format/png`)
       }
     })
   } catch (error) {
     console.log(error)
     throw new Error('不包含图片')
   }
-  let picUrlArray = []
-  if (picIdArray && picIdArray.length > 0) {
-    picIdArray.forEach((item) => picUrlArray.push(`https://ci.xiaohongshu.com/${item}?imageView2/2/w/0/format/png`))
-  }
 
-  imageList.forEach((item) => {
+  return picUrlArray
+}
+
+function getVidUrl(note) {
+  if (note.video?.media) {
     try {
-      livePhotoVideoUrl = item?.stream?.h264?.[0]?.masterUrl
-      if(livePhotoVideoUrl){
-        picUrlArray.push(livePhotoVideoUrl)
-      }
+      const media = note.video.media
+      const streamType = media.video.streamTypes[0]
+      Object.entries(media.stream).forEach(([key, value]) => {
+        if (value.length > 0 && value[0].streamType === streamType) {
+          videoUrl = value[0].masterUrl
+        }
+      })
+      return videoUrl
     } catch (error) {
       console.log(error)
     }
-  })
-
-  let videoUrl = null
-  try {
-    const media = note.video.media
-    const streamType = media.video.streamTypes[0]
-    Object.entries(media.stream).forEach(([key, value]) => {
-      if (value.length > 0 && value[0].streamType === streamType) {
-        videoUrl = value[0].masterUrl
-      }
-    })
-  } catch (error) {
-    console.log(error)
   }
-  if (videoUrl) {
-    picUrlArray.push(videoUrl)
-  }
-  return picUrlArray
+  return null
 }

@@ -2,10 +2,20 @@ version: "3.8"
 
 services:
   xhs_pic_download:
-    image: nfew/xhs_pic_download:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: xhs_pic_download
-    ports:
-      - "7776:7776"
-    environment:
-      - TZ=Asia/Shanghai
+    # environment:
+    #   - TZ=Asia/Shanghai
+    env_file:
+      - xhs.env
     restart: always
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: xhs_tunnel
+    restart: always
+    command: tunnel run
+    env_file:
+      - cf.env
