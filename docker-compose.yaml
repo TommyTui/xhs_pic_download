@@ -6,8 +6,6 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: xhs_pic_download
-    # environment:
-    #   - TZ=Asia/Shanghai
     env_file:
       - xhs.env
     restart: always
